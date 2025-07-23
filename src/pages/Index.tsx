@@ -50,10 +50,26 @@ const Index = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-destructive mb-4">Error</h1>
-          <p className="text-muted-foreground">{error}</p>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+              Pemantauan Pangan Dan Barang Pasar Kabupaten Ciamis
+            </h1>
+            <p className="text-muted-foreground text-sm mb-4">
+              Update: <span className="font-medium">{new Date().toLocaleDateString('id-ID', { 
+                day: '2-digit', 
+                month: 'long', 
+                year: 'numeric' 
+              })}</span>
+            </p>
+          </div>
+          <div className="text-center py-8">
+            <h2 className="text-xl font-semibold text-primary mb-2">Sistem Sedang Menggunakan Data Contoh</h2>
+            <p className="text-muted-foreground">
+              Beberapa API tidak dapat diakses, namun aplikasi tetap dapat digunakan dengan data contoh.
+            </p>
+          </div>
         </div>
       </div>
     );
