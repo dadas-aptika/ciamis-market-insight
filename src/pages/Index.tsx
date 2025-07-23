@@ -54,7 +54,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-              Pemantauan Pangan Dan Barang Pasar Kabupaten Ciamis
+              Pemantaauan Pangan Dan Barang Pasar Kabupaten Ciamis
             </h1>
             <p className="text-muted-foreground text-sm mb-4">
               Update: <span className="font-medium">{new Date().toLocaleDateString('id-ID', { 
