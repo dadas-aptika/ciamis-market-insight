@@ -102,54 +102,50 @@ const Index = () => {
           />
         </div>
 
-        <div className="flex gap-6">
-          {/* Main Content */}
-          <div className="flex-1">
-            <div className="bg-card border-2 border-primary/30 rounded-lg p-6">
-              {loading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <span className="ml-2 text-muted-foreground">Memuat data...</span>
-                </div>
-              ) : (
-                <>
-                  {/* Commodity Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    {paginatedCommodities.map((commodity) => (
-                      <CommodityCard
-                        key={commodity.id}
-                        commodity={commodity}
-                        onShowChart={handleShowChart}
-                      />
-                    ))}
-                  </div>
+        {/* Main Content */}
+        <div className="bg-card border-2 border-primary/30 rounded-lg p-6 mb-6">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2 text-muted-foreground">Memuat data...</span>
+            </div>
+          ) : (
+            <>
+              {/* Commodity Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                {paginatedCommodities.map((commodity) => (
+                  <CommodityCard
+                    key={commodity.id}
+                    commodity={commodity}
+                    onShowChart={handleShowChart}
+                  />
+                ))}
+              </div>
 
-                  {/* Pagination */}
-                  {totalPages > 1 && (
-                    <Pagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      onPageChange={setCurrentPage}
-                      totalRecords={filteredCommodities.length}
-                      recordsPerPage={recordsPerPage}
-                    />
-                  )}
-                </>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  totalRecords={filteredCommodities.length}
+                  recordsPerPage={recordsPerPage}
+                />
               )}
-            </div>
-          </div>
-
-          {/* Chart Panel */}
-          {selectedCommodity && (
-            <div className="w-80 lg:w-96">
-              <PriceChart
-                data={getCommodityPriceHistory(selectedCommodity.nama)}
-                commodityName={selectedCommodity.nama}
-                onClose={handleCloseChart}
-              />
-            </div>
+            </>
           )}
         </div>
+
+        {/* Chart Panel - Now Below Main Content */}
+        {selectedCommodity && (
+          <div className="w-full">
+            <PriceChart
+              data={getCommodityPriceHistory(selectedCommodity.nama)}
+              commodityName={selectedCommodity.nama}
+              onClose={handleCloseChart}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
