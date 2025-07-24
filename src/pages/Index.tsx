@@ -11,7 +11,7 @@ import { Loader2 } from 'lucide-react';
 const Index = () => {
   const { commodities, categories, priceHistory, loading, error } = useCommodities();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMarket, setSelectedMarket] = useState('');
+  const [selectedMarket, setSelectedMarket] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCommodity, setSelectedCommodity] = useState<Commodity | null>(null);
   const recordsPerPage = 8;
@@ -28,7 +28,7 @@ const Index = () => {
     }
     
     // Filter by market
-    if (selectedMarket && selectedMarket !== 'Semua Pasar') {
+    if (selectedMarket && selectedMarket !== 'all') {
       filtered = filtered.filter(commodity => commodity.pasar === selectedMarket);
     }
     
@@ -133,7 +133,7 @@ const Index = () => {
                   <SelectValue placeholder="Semua Pasar" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Semua Pasar</SelectItem>
+                  <SelectItem value="all">Semua Pasar</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.nama}>
                       {category.nama}
