@@ -98,42 +98,50 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+        <header className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
             Pemantauan Pangan Dan Barang Pasar Kabupaten Ciamis
           </h1>
-          <p className="text-muted-foreground text-sm mb-4">
-            Update: <span className="font-medium">{new Date().toLocaleDateString('id-ID', { 
-              day: '2-digit', 
-              month: 'long', 
-              year: 'numeric' 
-            })}</span>
+          <p className="text-muted-foreground text-lg md:text-xl mb-3">
+            Data terbaru harga komoditas di seluruh pasar
           </p>
-        </div>
+          <p className="text-sm text-muted-foreground">
+            Terakhir diperbarui: {new Date().toLocaleDateString('id-ID', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </p>
+        </header>
 
-        {/* Search Bar and Market Filter */}
-        <div className="mb-8 flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <SearchBar
-              value={searchTerm}
-              onChange={setSearchTerm}
-              onSearch={handleSearch}
-              placeholder="Cari di sini..."
-            />
-          </div>
-          <div className="sm:w-64">
-            <Select value={selectedMarket} onValueChange={handleMarketChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih Pasar" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.nama}>
-                    {category.nama}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        {/* Search and Filter Section */}
+        <div className="mb-12">
+          <div className="flex flex-col lg:flex-row gap-4 items-center justify-center max-w-5xl mx-auto">
+            <div className="flex-1 w-full lg:max-w-2xl">
+              <SearchBar
+                value={searchTerm}
+                onChange={setSearchTerm}
+                onSearch={handleSearch}
+                placeholder="Cari komoditas..."
+              />
+            </div>
+            
+            <div className="w-full lg:w-auto lg:min-w-[300px]">
+              <Select value={selectedMarket} onValueChange={handleMarketChange}>
+                <SelectTrigger className="w-full border-2 border-primary/30 focus:border-primary rounded-full h-12 bg-background/50 backdrop-blur-sm">
+                  <SelectValue placeholder="Semua Pasar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Semua Pasar</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.nama}>
+                      {category.nama}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
