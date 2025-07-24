@@ -5,22 +5,35 @@ import { SearchBar } from '@/components/SearchBar';
 import { Pagination } from '@/components/Pagination';
 import { useCommodities } from '@/hooks/useCommodities';
 import { Commodity } from '@/types/commodity';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from 'lucide-react';
 
 const Index = () => {
-  const { commodities, priceHistory, loading, error } = useCommodities();
+  const { commodities, categories, priceHistory, loading, error } = useCommodities();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMarket, setSelectedMarket] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCommodity, setSelectedCommodity] = useState<Commodity | null>(null);
   const recordsPerPage = 8;
 
-  // Filter commodities based on search term
+  // Filter commodities based on search term and market
   const filteredCommodities = useMemo(() => {
-    if (!searchTerm) return commodities;
-    return commodities.filter(commodity =>
-      commodity.nama.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [commodities, searchTerm]);
+    let filtered = commodities;
+    
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(commodity =>
+        commodity.nama.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Filter by market
+    if (selectedMarket && selectedMarket !== 'Semua Pasar') {
+      filtered = filtered.filter(commodity => commodity.pasar === selectedMarket);
+    }
+    
+    return filtered;
+  }, [commodities, searchTerm, selectedMarket]);
 
   // Paginate filtered commodities
   const totalPages = Math.ceil(filteredCommodities.length / recordsPerPage);
@@ -29,8 +42,13 @@ const Index = () => {
     return filteredCommodities.slice(startIndex, startIndex + recordsPerPage);
   }, [filteredCommodities, currentPage, recordsPerPage]);
 
-  // Reset to first page when search term changes
+  // Reset to first page when search term or market changes
   const handleSearch = () => {
+    setCurrentPage(1);
+  };
+
+  const handleMarketChange = (market: string) => {
+    setSelectedMarket(market);
     setCurrentPage(1);
   };
 
@@ -43,6 +61,7 @@ const Index = () => {
   };
 
   const getCommodityPriceHistory = (commodityName: string) => {
+    // Get data from all markets for this commodity
     return priceHistory.filter(item => 
       item.komoditi.toLowerCase().includes(commodityName.toLowerCase())
     );
@@ -92,14 +111,30 @@ const Index = () => {
           </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="mb-8">
-          <SearchBar
-            value={searchTerm}
-            onChange={setSearchTerm}
-            onSearch={handleSearch}
-            placeholder="Cari di sini..."
-          />
+        {/* Search Bar and Market Filter */}
+        <div className="mb-8 flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <SearchBar
+              value={searchTerm}
+              onChange={setSearchTerm}
+              onSearch={handleSearch}
+              placeholder="Cari di sini..."
+            />
+          </div>
+          <div className="sm:w-64">
+            <Select value={selectedMarket} onValueChange={handleMarketChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih Pasar" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.nama}>
+                    {category.nama}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Main Content */}

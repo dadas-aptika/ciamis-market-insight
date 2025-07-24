@@ -55,8 +55,11 @@ export const CommodityCard = ({ commodity, onShowChart }: CommodityCardProps) =>
             {formatPrice(commodity.harga)}
           </p>
           <p className="text-sm text-muted-foreground">
-            {commodity.satuan}
+            per {commodity.satuan}
           </p>
+          {commodity.pasar && (
+            <p className="text-xs text-muted-foreground mt-1">{commodity.pasar}</p>
+          )}
         </div>
       </CardContent>
     </Card>

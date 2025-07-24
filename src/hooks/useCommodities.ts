@@ -33,47 +33,50 @@ export const useCommodities = () => {
       const result = await response.json();
       const data: ApiPriceData[] = result.data || result;
       
-      // Convert to price history format
-      const historyData: PriceHistory[] = data.map(item => ({
-        tanggal: item.tanggal,
-        harga: item.harga,
-        komoditi: item.nama
-      }));
-      setPriceHistory(historyData);
-      
-      // Extract unique commodities from price data
-      const uniqueCommodities = new Map<number, Commodity>();
-      
-      data.forEach(item => {
-        if (!uniqueCommodities.has(item.komoditi_id)) {
-          const imageUrl = item.foto ? `https://situ.ciamiskab.go.id/storage/${item.foto}` : undefined;
-          
-          uniqueCommodities.set(item.komoditi_id, {
-            id: item.komoditi_id,
-            nama: item.nama,
-            harga: item.harga,
-            satuan: `Rp/${item.nama_satuan}`,
-            gambar: imageUrl,
-            kategori: item.nama_pasar
-          });
+      // Group by commodity name and market to get all combinations
+      const commodityMap = new Map<string, Commodity>();
+      const priceHistoryList: PriceHistory[] = [];
+      const marketSet = new Set<string>();
+
+      data.forEach((item: ApiPriceData) => {
+        const commodityKey = `${item.nama}-${item.nama_pasar}`;
+        const commodity: Commodity = {
+          id: item.id,
+          nama: item.nama,
+          harga: item.harga,
+          satuan: item.nama_satuan,
+          gambar: item.foto ? `https://situ.ciamiskab.go.id/storage/${item.foto}` : undefined,
+          pasar: item.nama_pasar,
+        };
+
+        // Keep unique commodity-market combinations
+        if (!commodityMap.has(commodityKey)) {
+          commodityMap.set(commodityKey, commodity);
         }
+
+        // Track all markets
+        marketSet.add(item.nama_pasar);
+
+        // Add to price history
+        priceHistoryList.push({
+          tanggal: item.tanggal,
+          harga: item.harga,
+          komoditi: item.nama,
+          pasar: item.nama_pasar
+        });
       });
+
+      setCommodities(Array.from(commodityMap.values()));
+      setPriceHistory(priceHistoryList);
       
-      const commodityList = Array.from(uniqueCommodities.values());
-      setCommodities(commodityList);
-      
-      // Create categories from unique markets
-      const uniqueMarkets = new Map<string, Category>();
-      data.forEach((item, index) => {
-        if (!uniqueMarkets.has(item.nama_pasar)) {
-          uniqueMarkets.set(item.nama_pasar, {
-            id: index,
-            nama: item.nama_pasar
-          });
-        }
-      });
-      
-      setCategories(Array.from(uniqueMarkets.values()));
+      // Set categories as markets for filtering
+      setCategories([
+        { id: 0, nama: 'Semua Pasar' },
+        ...Array.from(marketSet).map((market, index) => ({
+          id: index + 1,
+          nama: market
+        }))
+      ]);
       
     } catch (err) {
       console.error('API Error:', err);

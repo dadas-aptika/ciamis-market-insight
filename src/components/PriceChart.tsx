@@ -160,7 +160,7 @@ export const PriceChart = ({ data, commodityName, onClose }: PriceChartProps) =>
         <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-chart-1"></div>
-            <span>Pasar Ciamis Manis</span>
+            <span>Semua Pasar di Kabupaten Ciamis</span>
           </div>
         </div>
       </CardContent>

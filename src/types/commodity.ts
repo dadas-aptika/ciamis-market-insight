@@ -5,6 +5,7 @@ export interface Commodity {
   satuan: string;
   gambar?: string;
   kategori?: string;
+  pasar?: string;
 }
 
 export interface Category {
@@ -16,4 +17,5 @@ export interface PriceHistory {
   tanggal: string;
   harga: number;
   komoditi: string;
+  pasar: string;
 }
