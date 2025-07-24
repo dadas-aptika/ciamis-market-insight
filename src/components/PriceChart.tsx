@@ -28,10 +28,38 @@ export const PriceChart = ({ data, commodityName, onClose }: PriceChartProps) =>
     });
   };
 
-  const chartData = data.map(item => ({
-    ...item,
-    tanggal: formatDate(item.tanggal)
-  }));
+  // Group data by market and format dates
+  const marketData = data.reduce((acc, item) => {
+    const market = item.pasar;
+    if (!acc[market]) {
+      acc[market] = [];
+    }
+    acc[market].push({
+      ...item,
+      tanggal: formatDate(item.tanggal)
+    });
+    return acc;
+  }, {} as Record<string, typeof data>);
+
+  // Get all unique dates and create combined chart data
+  const allDates = [...new Set(data.map(item => formatDate(item.tanggal)))];
+  const chartData = allDates.map(date => {
+    const entry: any = { tanggal: date };
+    Object.keys(marketData).forEach(market => {
+      const marketItem = marketData[market].find(item => item.tanggal === date);
+      entry[market] = marketItem ? marketItem.harga : null;
+    });
+    return entry;
+  });
+
+  const markets = Object.keys(marketData);
+  const chartColors = [
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-2))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))'
+  ];
 
   const downloadSVG = () => {
     const chartElement = document.querySelector('.recharts-wrapper svg');
@@ -143,25 +171,37 @@ export const PriceChart = ({ data, commodityName, onClose }: PriceChartProps) =>
                 tickFormatter={formatPrice}
               />
               <Tooltip 
-                formatter={(value) => [formatPrice(Number(value)), 'Harga']}
+                formatter={(value, name) => [
+                  value ? formatPrice(Number(value)) : 'Tidak ada data', 
+                  `${name}`
+                ]}
                 labelFormatter={(label) => `Tanggal: ${label}`}
               />
-              <Line 
-                type="monotone" 
-                dataKey="harga" 
-                stroke="hsl(var(--chart-1))" 
-                strokeWidth={3}
-                dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: "hsl(var(--chart-1))", strokeWidth: 2 }}
-              />
+              {markets.map((market, index) => (
+                <Line 
+                  key={market}
+                  type="monotone" 
+                  dataKey={market}
+                  stroke={chartColors[index % chartColors.length]}
+                  strokeWidth={2}
+                  dot={{ fill: chartColors[index % chartColors.length], strokeWidth: 2, r: 3 }}
+                  activeDot={{ r: 5, stroke: chartColors[index % chartColors.length], strokeWidth: 2 }}
+                  connectNulls={false}
+                />
+              ))}
             </LineChart>
           </ResponsiveContainer>
         </div>
-        <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-chart-1"></div>
-            <span>Semua Pasar di Kabupaten Ciamis</span>
-          </div>
+        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+          {markets.map((market, index) => (
+            <div key={market} className="flex items-center gap-2">
+              <div 
+                className="w-3 h-3 rounded-full" 
+                style={{ backgroundColor: chartColors[index % chartColors.length] }}
+              ></div>
+              <span>{market}</span>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>
