@@ -22,13 +22,49 @@ const Index = () => {
   const [selectedCommodity, setSelectedCommodity] = useState<Commodity | null>(null);
   const recordsPerPage = 8;
 
-  // Generate price trend for commodity
+  // Get real price trend for commodity using price history data
   const getPriceTrend = (commodity: Commodity) => {
-    // Simple logic to determine if price is rising, falling, or stable
-    const randomTrend = Math.random();
-    if (randomTrend > 0.6) return 'naik';
-    if (randomTrend < 0.4) return 'turun';
+    const commodityData = priceHistory.filter(item => 
+      item.komoditi.toLowerCase().includes(commodity.nama.toLowerCase())
+    );
+    
+    if (commodityData.length < 2) return 'tetap';
+    
+    // Sort by date and get last two entries
+    const sortedData = commodityData
+      .sort((a, b) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime())
+      .slice(-2);
+    
+    if (sortedData.length < 2) return 'tetap';
+    
+    const [prev, current] = sortedData;
+    const priceDiff = current.harga - prev.harga;
+    const threshold = prev.harga * 0.01; // 1% threshold
+    
+    if (priceDiff > threshold) return 'naik';
+    if (priceDiff < -threshold) return 'turun';
     return 'tetap';
+  };
+
+  // Get price change data for commodity
+  const getPriceChange = (commodity: Commodity) => {
+    const commodityData = priceHistory.filter(item => 
+      item.komoditi.toLowerCase().includes(commodity.nama.toLowerCase())
+    );
+    
+    if (commodityData.length < 2) return { amount: 0, percentage: 0 };
+    
+    const sortedData = commodityData
+      .sort((a, b) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime())
+      .slice(-2);
+    
+    if (sortedData.length < 2) return { amount: 0, percentage: 0 };
+    
+    const [prev, current] = sortedData;
+    const amount = current.harga - prev.harga;
+    const percentage = ((amount / prev.harga) * 100);
+    
+    return { amount: Math.abs(amount), percentage: Math.abs(percentage) };
   };
 
   // Filter commodities based on search term, market, and price condition
@@ -56,7 +92,7 @@ const Index = () => {
     }
     
     return filtered;
-  }, [commodities, searchTerm, selectedMarket, priceCondition]);
+  }, [commodities, searchTerm, selectedMarket, priceCondition, priceHistory]);
 
   // Paginate filtered commodities
   const totalPages = Math.ceil(filteredCommodities.length / recordsPerPage);
@@ -239,7 +275,7 @@ const Index = () => {
             <TabsTrigger value="all" className="text-sm px-4 py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Semua Pasar
             </TabsTrigger>
-            {categories.map((category) => (
+            {categories.slice(0, 5).map((category) => (
               <TabsTrigger 
                 key={category.id} 
                 value={category.nama}
@@ -279,13 +315,12 @@ const Index = () => {
                       <div className="text-sm text-gray-500 mb-2">
                         {(() => {
                           const trend = getPriceTrend(commodity);
-                          const changeAmount = Math.floor(Math.random() * 1000) + 100;
-                          const changePercent = (Math.random() * 2).toFixed(2);
+                          const { amount, percentage } = getPriceChange(commodity);
                           
                           if (trend === 'naik') {
-                            return <span className="text-red-500">↗ +{changePercent}% (Rp {changeAmount})</span>;
+                            return <span className="text-red-500">↗ +{percentage.toFixed(2)}% (Rp {amount.toLocaleString('id-ID')})</span>;
                           } else if (trend === 'turun') {
-                            return <span className="text-green-500">↘ -{changePercent}% (Rp {changeAmount})</span>;
+                            return <span className="text-green-500">↘ -{percentage.toFixed(2)}% (Rp {amount.toLocaleString('id-ID')})</span>;
                           } else {
                             return <span className="text-gray-500">→ 0.00% (Rp 0)</span>;
                           }
