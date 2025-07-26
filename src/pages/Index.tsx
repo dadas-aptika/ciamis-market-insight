@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, Search, Info, ChevronDown } from 'lucide-react';
 
 const Index = () => {
@@ -21,7 +22,16 @@ const Index = () => {
   const [selectedCommodity, setSelectedCommodity] = useState<Commodity | null>(null);
   const recordsPerPage = 8;
 
-  // Filter commodities based on search term and market
+  // Generate price trend for commodity
+  const getPriceTrend = (commodity: Commodity) => {
+    // Simple logic to determine if price is rising, falling, or stable
+    const randomTrend = Math.random();
+    if (randomTrend > 0.6) return 'naik';
+    if (randomTrend < 0.4) return 'turun';
+    return 'tetap';
+  };
+
+  // Filter commodities based on search term, market, and price condition
   const filteredCommodities = useMemo(() => {
     let filtered = commodities;
     
@@ -37,8 +47,16 @@ const Index = () => {
       filtered = filtered.filter(commodity => commodity.pasar === selectedMarket);
     }
     
+    // Filter by price condition
+    if (priceCondition !== 'semua') {
+      filtered = filtered.filter(commodity => {
+        const trend = getPriceTrend(commodity);
+        return trend === priceCondition;
+      });
+    }
+    
     return filtered;
-  }, [commodities, searchTerm, selectedMarket]);
+  }, [commodities, searchTerm, selectedMarket, priceCondition]);
 
   // Paginate filtered commodities
   const totalPages = Math.ceil(filteredCommodities.length / recordsPerPage);
@@ -259,13 +277,33 @@ const Index = () => {
                         Rp {commodity.harga?.toLocaleString('id-ID') || '0'} / {commodity.satuan}
                       </div>
                       <div className="text-sm text-gray-500 mb-2">
-                        {Math.random() > 0.5 ? '+ 0,05%' : '- 0,05%'} (Rp {Math.floor(Math.random() * 100)})
+                        {(() => {
+                          const trend = getPriceTrend(commodity);
+                          const changeAmount = Math.floor(Math.random() * 1000) + 100;
+                          const changePercent = (Math.random() * 2).toFixed(2);
+                          
+                          if (trend === 'naik') {
+                            return <span className="text-red-500">↗ +{changePercent}% (Rp {changeAmount})</span>;
+                          } else if (trend === 'turun') {
+                            return <span className="text-green-500">↘ -{changePercent}% (Rp {changeAmount})</span>;
+                          } else {
+                            return <span className="text-gray-500">→ 0.00% (Rp 0)</span>;
+                          }
+                        })()}
                       </div>
                       
                       {/* Mini trend indicator */}
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-xs text-gray-500">Tren Harga</span>
-                        <div className="text-xs text-blue-600">0,0%</div>
+                        <div className={`text-xs ${
+                          getPriceTrend(commodity) === 'naik' ? 'text-red-500' : 
+                          getPriceTrend(commodity) === 'turun' ? 'text-green-500' : 
+                          'text-gray-500'
+                        }`}>
+                          {getPriceTrend(commodity) === 'naik' ? 'Naik' : 
+                           getPriceTrend(commodity) === 'turun' ? 'Turun' : 
+                           'Tetap'}
+                        </div>
                       </div>
                       
                       {/* Mini chart with tooltip */}
@@ -299,17 +337,42 @@ const Index = () => {
           </>
         )}
 
-        {/* Chart Panel - Now Below Main Content */}
-        {selectedCommodity && (
-          <div className="w-full mt-6">
-            <PriceChart
-              data={getCommodityPriceHistory(selectedCommodity.nama)}
-              commodityName={selectedCommodity.nama}
-              onClose={handleCloseChart}
-            />
-          </div>
-        )}
+        {/* Chart Modal */}
+        <Dialog open={!!selectedCommodity} onOpenChange={() => setSelectedCommodity(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+            <DialogHeader>
+              <DialogTitle>Grafik Harga - {selectedCommodity?.nama}</DialogTitle>
+            </DialogHeader>
+            {selectedCommodity && (
+              <PriceChart
+                data={getCommodityPriceHistory(selectedCommodity.nama)}
+                commodityName={selectedCommodity.nama}
+                onClose={handleCloseChart}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-blue-600 text-white mt-12">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center">
+                <span className="text-xs font-bold">S</span>
+              </div>
+              <div>
+                <div className="font-semibold">SIMANIS</div>
+                <div className="text-xs opacity-90">Sistem Informasi Manajemen Harga Pangan</div>
+              </div>
+            </div>
+            <div className="text-sm opacity-90">
+              © 2024 Kabupaten Ciamis. All rights reserved.
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
