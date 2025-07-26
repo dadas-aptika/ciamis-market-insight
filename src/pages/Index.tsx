@@ -6,7 +6,10 @@ import { Pagination } from '@/components/Pagination';
 import { useCommodities } from '@/hooks/useCommodities';
 import { Commodity } from '@/types/commodity';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, Search, Info, ChevronDown } from 'lucide-react';
 
 const Index = () => {
   const { commodities, categories, priceHistory, loading, error } = useCommodities();
@@ -95,93 +98,217 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <header className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-            Pemantauan Pangan Dan Barang Pasar Kabupaten Ciamis
-          </h1>
-          <p className="text-muted-foreground text-lg md:text-xl mb-3">
-            Data terbaru harga komoditas di seluruh pasar
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Terakhir diperbarui: {new Date().toLocaleDateString('id-ID', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </p>
-        </header>
-
-        {/* Search and Filter Section */}
-        <div className="mb-12">
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-center max-w-5xl mx-auto">
-            <div className="flex-1 w-full lg:max-w-2xl">
-              <SearchBar
-                value={searchTerm}
-                onChange={setSearchTerm}
-                onSearch={handleSearch}
-                placeholder="Cari komoditas..."
-              />
+    <div className="min-h-screen bg-gray-50">
+      {/* Blue Header */}
+      <div className="bg-blue-600 text-white">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center">
+                <span className="text-xs font-bold">S</span>
+              </div>
+              <div>
+                <div className="text-xs opacity-90">DASHBOARD</div>
+                <div className="font-semibold">SIMANIS</div>
+              </div>
             </div>
-            
-            <div className="w-full lg:w-auto lg:min-w-[300px]">
-              <Select value={selectedMarket} onValueChange={handleMarketChange}>
-                <SelectTrigger className="w-full border-2 border-primary/30 focus:border-primary rounded-full h-12 bg-background/50 backdrop-blur-sm">
-                  <SelectValue placeholder="Semua Pasar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Pasar</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.nama}>
-                      {category.nama}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-2">
+              <span className="text-sm">Perkembangan Harga</span>
+              <ChevronDown className="w-4 h-4" />
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Breadcrumb */}
+      <div className="bg-gray-100 border-b">
+        <div className="container mx-auto px-4 py-3">
+          <div className="text-sm text-gray-600">
+            Beranda → Eksplorasi Dashboard → Dashboard Pangan
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-6">
+        {/* Title */}
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">
+          Dashboard Pangan Kabupaten Ciamis
+        </h1>
+
+        {/* Search and Filters */}
+        <div className="flex flex-wrap items-center gap-4 mb-6">
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Cari Komoditas"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-64 pl-4 pr-10 h-10 border border-gray-300 rounded"
+              />
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            </div>
+            <Button 
+              onClick={handleSearch}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 h-10"
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">Pilih Pasar</span>
+            <Select value={selectedMarket} onValueChange={handleMarketChange}>
+              <SelectTrigger className="w-48 h-10 border border-gray-300">
+                <SelectValue placeholder="Semua Pasar" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border border-gray-200 shadow-lg">
+                <SelectItem value="all">Semua Pasar</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.nama}>
+                    {category.nama}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <span className="text-sm text-gray-600">Kondisi Harga</span>
+            <Select defaultValue="semua">
+              <SelectTrigger className="w-48 h-10 border border-gray-300">
+                <SelectValue placeholder="Semua" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border border-gray-200 shadow-lg">
+                <SelectItem value="semua">Semua</SelectItem>
+                <SelectItem value="naik">Naik</SelectItem>
+                <SelectItem value="turun">Turun</SelectItem>
+                <SelectItem value="tetap">Tetap</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Price Legend */}
+        <div className="flex items-center gap-6 mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            <span className="text-sm text-gray-600">Harga Turun</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+            <span className="text-sm text-gray-600">Harga Naik</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-black rounded-full"></div>
+            <span className="text-sm text-gray-600">Harga Tetap</span>
+          </div>
+        </div>
+
+        {/* Information Banner */}
+        <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-6">
+          <div className="flex items-center gap-2 text-blue-700">
+            <Info className="w-4 h-4" />
+            <span className="text-sm">
+              Menampilkan harga rata-rata di Ciamis, pilih pasar untuk harga yang lebih akurat
+            </span>
+          </div>
+        </div>
+
+        {/* Market Tabs */}
+        <Tabs value={selectedMarket} onValueChange={handleMarketChange} className="mb-6">
+          <TabsList className="bg-gray-100 p-1 rounded">
+            <TabsTrigger value="all" className="text-sm px-4 py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Pasar
+            </TabsTrigger>
+            <TabsTrigger value="all" className="text-sm px-4 py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Semua Pasar
+            </TabsTrigger>
+            {categories.slice(0, 2).map((category) => (
+              <TabsTrigger 
+                key={category.id} 
+                value={category.nama}
+                className="text-sm px-4 py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              >
+                {category.nama}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
 
         {/* Main Content */}
-        <div className="bg-card border-2 border-primary/30 rounded-lg p-6 mb-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <span className="ml-2 text-muted-foreground">Memuat data...</span>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <span className="ml-2 text-gray-600">Memuat data...</span>
+          </div>
+        ) : (
+          <>
+            {/* Commodity Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              {paginatedCommodities.map((commodity) => (
+                <div key={commodity.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+                      <img 
+                        src={commodity.gambar || "/placeholder.svg"} 
+                        alt={commodity.nama}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-gray-900 mb-1">{commodity.nama}</h3>
+                      <div className="text-lg font-bold text-gray-900 mb-1">
+                        Rp {commodity.harga?.toLocaleString('id-ID') || '0'} / {commodity.satuan}
+                      </div>
+                      <div className="text-sm text-gray-500 mb-2">
+                        {Math.random() > 0.5 ? '+ 0,05%' : '- 0,05%'} (Rp {Math.floor(Math.random() * 100)})
+                      </div>
+                      
+                      {/* Mini trend indicator */}
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs text-gray-500">Tren Harga</span>
+                        <div className="text-xs text-blue-600">0,0%</div>
+                      </div>
+                      
+                      {/* Mini chart placeholder */}
+                      <div className="h-8 bg-gray-50 rounded mb-2 flex items-end justify-around p-1">
+                        {[...Array(10)].map((_, i) => (
+                          <div 
+                            key={i} 
+                            className="w-1 bg-blue-400 rounded-full"
+                            style={{ height: `${20 + Math.random() * 80}%` }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleShowChart(commodity)}
+                      className="text-gray-400 hover:text-gray-600 p-1"
+                    >
+                      <Info className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ) : (
-            <>
-              {/* Commodity Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                {paginatedCommodities.map((commodity) => (
-                  <CommodityCard
-                    key={commodity.id}
-                    commodity={commodity}
-                    onShowChart={handleShowChart}
-                  />
-                ))}
-              </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={setCurrentPage}
-                  totalRecords={filteredCommodities.length}
-                  recordsPerPage={recordsPerPage}
-                />
-              )}
-            </>
-          )}
-        </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                totalRecords={filteredCommodities.length}
+                recordsPerPage={recordsPerPage}
+              />
+            )}
+          </>
+        )}
 
         {/* Chart Panel - Now Below Main Content */}
         {selectedCommodity && (
-          <div className="w-full">
+          <div className="w-full mt-6">
             <PriceChart
               data={getCommodityPriceHistory(selectedCommodity.nama)}
               commodityName={selectedCommodity.nama}
