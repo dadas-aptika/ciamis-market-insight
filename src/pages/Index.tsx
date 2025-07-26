@@ -3,6 +3,7 @@ import { CommodityCard } from '@/components/CommodityCard';
 import { PriceChart } from '@/components/PriceChart';
 import { SearchBar } from '@/components/SearchBar';
 import { Pagination } from '@/components/Pagination';
+import { MiniChart } from '@/components/MiniChart';
 import { useCommodities } from '@/hooks/useCommodities';
 import { Commodity } from '@/types/commodity';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,6 +16,7 @@ const Index = () => {
   const { commodities, categories, priceHistory, loading, error } = useCommodities();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMarket, setSelectedMarket] = useState('all');
+  const [priceCondition, setPriceCondition] = useState('semua');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCommodity, setSelectedCommodity] = useState<Commodity | null>(null);
   const recordsPerPage = 8;
@@ -173,11 +175,11 @@ const Index = () => {
             </Select>
 
             <span className="text-sm text-gray-600">Kondisi Harga</span>
-            <Select defaultValue="semua">
+            <Select value={priceCondition} onValueChange={setPriceCondition}>
               <SelectTrigger className="w-48 h-10 border border-gray-300">
                 <SelectValue placeholder="Semua" />
               </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg">
+              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
                 <SelectItem value="semua">Semua</SelectItem>
                 <SelectItem value="naik">Naik</SelectItem>
                 <SelectItem value="turun">Turun</SelectItem>
@@ -217,12 +219,9 @@ const Index = () => {
         <Tabs value={selectedMarket} onValueChange={handleMarketChange} className="mb-6">
           <TabsList className="bg-gray-100 p-1 rounded">
             <TabsTrigger value="all" className="text-sm px-4 py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-              Pasar
-            </TabsTrigger>
-            <TabsTrigger value="all" className="text-sm px-4 py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Semua Pasar
             </TabsTrigger>
-            {categories.slice(0, 2).map((category) => (
+            {categories.map((category) => (
               <TabsTrigger 
                 key={category.id} 
                 value={category.nama}
@@ -269,15 +268,9 @@ const Index = () => {
                         <div className="text-xs text-blue-600">0,0%</div>
                       </div>
                       
-                      {/* Mini chart placeholder */}
-                      <div className="h-8 bg-gray-50 rounded mb-2 flex items-end justify-around p-1">
-                        {[...Array(10)].map((_, i) => (
-                          <div 
-                            key={i} 
-                            className="w-1 bg-blue-400 rounded-full"
-                            style={{ height: `${20 + Math.random() * 80}%` }}
-                          />
-                        ))}
+                      {/* Mini chart with tooltip */}
+                      <div className="bg-gray-50 rounded mb-2 p-1">
+                        <MiniChart commodityName={commodity.nama} />
                       </div>
                     </div>
                     <Button
