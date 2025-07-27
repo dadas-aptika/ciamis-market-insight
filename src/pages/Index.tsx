@@ -20,7 +20,7 @@ const Index = () => {
   const [priceCondition, setPriceCondition] = useState('semua');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCommodity, setSelectedCommodity] = useState<Commodity | null>(null);
-  const recordsPerPage = 8;
+  const recordsPerPage = 9;
 
   // Get real price trend for commodity using price history data
   const getPriceTrend = (commodity: Commodity) => {

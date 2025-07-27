@@ -10,8 +10,8 @@ interface MiniChartProps {
 export const MiniChart = ({ commodityName, marketName }: MiniChartProps) => {
   const { priceHistory } = useCommodities();
   
-  // Get real data for this commodity filtered by market and last 7 days
-  const weeklyData = useMemo(() => {
+  // Get real data for this commodity with multiple markets
+  const { chartData, marketList } = useMemo(() => {
     let commodityData = priceHistory.filter(item => 
       item.komoditi.toLowerCase().includes(commodityName.toLowerCase())
     );
@@ -23,43 +23,57 @@ export const MiniChart = ({ commodityName, marketName }: MiniChartProps) => {
       );
     }
     
-    // Group by market and get latest price for each market
-    const marketData = commodityData.reduce((acc, item) => {
-      const market = item.pasar;
-      if (!acc[market] || new Date(item.tanggal) > new Date(acc[market].tanggal)) {
-        acc[market] = item;
+    // Get unique markets
+    const markets = [...new Set(commodityData.map(item => item.pasar))];
+    
+    // Group by date and market
+    const dateMarketData = commodityData.reduce((acc, item) => {
+      const date = new Date(item.tanggal).toDateString();
+      if (!acc[date]) {
+        acc[date] = {};
       }
+      acc[date][item.pasar] = item.harga;
+      acc[date].tanggal = item.tanggal;
       return acc;
     }, {} as Record<string, any>);
     
     // Convert to array and sort by date, take last 7 entries
-    const sortedData = Object.values(marketData)
-      .sort((a: any, b: any) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime())
+    const sortedData = Object.entries(dateMarketData)
+      .map(([date, data]) => ({
+        day: new Date(data.tanggal).toLocaleDateString('id-ID', { weekday: 'short' }),
+        tanggal: new Date(data.tanggal).toLocaleDateString('id-ID'),
+        date: new Date(data.tanggal),
+        ...markets.reduce((acc, market) => {
+          acc[market] = data[market] || null;
+          return acc;
+        }, {} as Record<string, number | null>)
+      }))
+      .sort((a, b) => a.date.getTime() - b.date.getTime())
       .slice(-7);
     
     // If no real data, generate sample data
     if (sortedData.length === 0) {
       const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+      const sampleMarkets = ['Pasar Sample 1', 'Pasar Sample 2'];
       const basePrice = Math.floor(Math.random() * 50000) + 10000;
       
-      return days.map((day, index) => ({
-        day,
-        harga: basePrice + (Math.random() - 0.5) * 5000,
-        tanggal: `${index + 1} hari lalu`,
-        pasar: 'Sample Market'
-      }));
+      const sampleData = days.map((day, index) => {
+        const data: any = {
+          day,
+          tanggal: `${index + 1} hari lalu`,
+          date: new Date()
+        };
+        sampleMarkets.forEach(market => {
+          data[market] = basePrice + (Math.random() - 0.5) * 5000;
+        });
+        return data;
+      });
+      
+      return { chartData: sampleData, marketList: sampleMarkets };
     }
     
-    // Format real data
-    return sortedData.map((item: any) => ({
-      day: new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short' }),
-      harga: item.harga,
-      tanggal: new Date(item.tanggal).toLocaleDateString('id-ID'),
-      pasar: item.pasar
-    }));
+    return { chartData: sortedData, marketList: markets };
   }, [priceHistory, commodityName, marketName]);
-
-  const data = weeklyData;
 
   const formatPrice = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -70,33 +84,56 @@ export const MiniChart = ({ commodityName, marketName }: MiniChartProps) => {
     }).format(value);
   };
 
+  // Generate colors for different markets
+  const getLineColor = (index: number) => {
+    const colors = [
+      'hsl(221 83% 53%)', // blue
+      'hsl(142 76% 36%)', // green  
+      'hsl(346 87% 43%)', // red
+      'hsl(262 83% 58%)', // purple
+      'hsl(32 95% 44%)',  // orange
+    ];
+    return colors[index % colors.length];
+  };
+
   return (
     <div className="h-12 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          <Line 
-            type="monotone" 
-            dataKey="harga" 
-            stroke="hsl(221 83% 53%)" 
-            strokeWidth={2}
-            dot={false}
-            activeDot={false}
-          />
+        <LineChart data={chartData}>
+          {marketList.map((market, index) => (
+            <Line 
+              key={market}
+              type="monotone" 
+              dataKey={market} 
+              stroke={getLineColor(index)}
+              strokeWidth={2}
+              dot={false}
+              activeDot={false}
+              connectNulls={false}
+            />
+          ))}
           <Tooltip 
             content={({ active, payload, label }) => {
-              if (active && payload && payload.length && payload[0].payload) {
+              if (active && payload && payload.length) {
                 const data = payload[0].payload;
                 return (
                   <div className="bg-white border border-gray-200 rounded-lg p-2 shadow-lg text-xs">
                     <p className="font-medium">{data.tanggal}</p>
-                    <p className="text-blue-600">
-                      {formatPrice(Number(payload[0].value))}
-                    </p>
-                    {data.pasar && (
-                      <p className="text-gray-500 mt-1">
-                        Pasar: {data.pasar}
-                      </p>
-                    )}
+                    {payload.map((entry, index) => {
+                      if (entry.value !== null && entry.value !== undefined) {
+                        return (
+                          <div key={index} className="mt-1">
+                            <p style={{ color: entry.color }}>
+                              {formatPrice(Number(entry.value))}
+                            </p>
+                            <p className="text-gray-500 text-xs">
+                              Pasar: {entry.dataKey}
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })}
                   </div>
                 );
               }
