@@ -10,8 +10,8 @@ interface MiniChartProps {
 export const MiniChart = ({ commodityName, marketName }: MiniChartProps) => {
   const { priceHistory } = useCommodities();
   
-  // Get real data for this commodity with multiple markets
-  const { chartData, marketList } = useMemo(() => {
+  // Get real data for this commodity with single line (average price)
+  const chartData = useMemo(() => {
     let commodityData = priceHistory.filter(item => 
       item.komoditi.toLowerCase().includes(commodityName.toLowerCase())
     );
@@ -23,56 +23,47 @@ export const MiniChart = ({ commodityName, marketName }: MiniChartProps) => {
       );
     }
     
-    // Get unique markets
-    const markets = [...new Set(commodityData.map(item => item.pasar))];
-    
-    // Group by date and market
-    const dateMarketData = commodityData.reduce((acc, item) => {
+    // Group by date and calculate average price
+    const dateData = commodityData.reduce((acc, item) => {
       const date = new Date(item.tanggal).toDateString();
       if (!acc[date]) {
-        acc[date] = {};
+        acc[date] = {
+          prices: [],
+          tanggal: item.tanggal
+        };
       }
-      acc[date][item.pasar] = item.harga;
-      acc[date].tanggal = item.tanggal;
+      acc[date].prices.push(item.harga);
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, { prices: number[], tanggal: string }>);
     
     // Convert to array and sort by date, take last 7 entries
-    const sortedData = Object.entries(dateMarketData)
-      .map(([date, data]) => ({
-        day: new Date(data.tanggal).toLocaleDateString('id-ID', { weekday: 'short' }),
-        tanggal: new Date(data.tanggal).toLocaleDateString('id-ID'),
-        date: new Date(data.tanggal),
-        ...markets.reduce((acc, market) => {
-          acc[market] = data[market] || null;
-          return acc;
-        }, {} as Record<string, number | null>)
-      }))
+    const sortedData = Object.entries(dateData)
+      .map(([date, data]) => {
+        const avgPrice = data.prices.reduce((sum, price) => sum + price, 0) / data.prices.length;
+        return {
+          day: new Date(data.tanggal).toLocaleDateString('id-ID', { weekday: 'short' }),
+          tanggal: new Date(data.tanggal).toLocaleDateString('id-ID'),
+          date: new Date(data.tanggal),
+          price: Math.round(avgPrice)
+        };
+      })
       .sort((a, b) => a.date.getTime() - b.date.getTime())
       .slice(-7);
     
     // If no real data, generate sample data
     if (sortedData.length === 0) {
       const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-      const sampleMarkets = ['Pasar Sample 1', 'Pasar Sample 2'];
       const basePrice = Math.floor(Math.random() * 50000) + 10000;
       
-      const sampleData = days.map((day, index) => {
-        const data: any = {
-          day,
-          tanggal: `${index + 1} hari lalu`,
-          date: new Date()
-        };
-        sampleMarkets.forEach(market => {
-          data[market] = basePrice + (Math.random() - 0.5) * 5000;
-        });
-        return data;
-      });
-      
-      return { chartData: sampleData, marketList: sampleMarkets };
+      return days.map((day, index) => ({
+        day,
+        tanggal: `${index + 1} hari lalu`,
+        date: new Date(),
+        price: basePrice + (Math.random() - 0.5) * 5000
+      }));
     }
     
-    return { chartData: sortedData, marketList: markets };
+    return sortedData;
   }, [priceHistory, commodityName, marketName]);
 
   const formatPrice = (value: number) => {
@@ -84,34 +75,33 @@ export const MiniChart = ({ commodityName, marketName }: MiniChartProps) => {
     }).format(value);
   };
 
-  // Generate colors for different markets
-  const getLineColor = (index: number) => {
-    const colors = [
-      'hsl(221 83% 53%)', // blue
-      'hsl(142 76% 36%)', // green  
-      'hsl(346 87% 43%)', // red
-      'hsl(262 83% 58%)', // purple
-      'hsl(32 95% 44%)',  // orange
-    ];
-    return colors[index % colors.length];
+  // Determine line color based on trend
+  const getLineColor = () => {
+    if (chartData.length >= 2) {
+      const firstPrice = chartData[0].price;
+      const lastPrice = chartData[chartData.length - 1].price;
+      const percentChange = ((lastPrice - firstPrice) / firstPrice) * 100;
+      
+      if (percentChange > 2) return 'hsl(142 76% 36%)'; // green for up
+      if (percentChange < -2) return 'hsl(346 87% 43%)'; // red for down
+      return 'hsl(221 83% 53%)'; // blue for stable
+    }
+    return 'hsl(221 83% 53%)'; // default blue
   };
 
   return (
     <div className="h-12 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData}>
-          {marketList.map((market, index) => (
-            <Line 
-              key={market}
-              type="monotone" 
-              dataKey={market} 
-              stroke={getLineColor(index)}
-              strokeWidth={2}
-              dot={false}
-              activeDot={false}
-              connectNulls={false}
-            />
-          ))}
+          <Line 
+            type="monotone" 
+            dataKey="price" 
+            stroke={getLineColor()}
+            strokeWidth={2}
+            dot={false}
+            activeDot={false}
+            connectNulls={false}
+          />
           <Tooltip 
             content={({ active, payload, label }) => {
               if (active && payload && payload.length) {
@@ -119,21 +109,9 @@ export const MiniChart = ({ commodityName, marketName }: MiniChartProps) => {
                 return (
                   <div className="bg-white border border-gray-200 rounded-lg p-2 shadow-lg text-xs">
                     <p className="font-medium">{data.tanggal}</p>
-                    {payload.map((entry, index) => {
-                      if (entry.value !== null && entry.value !== undefined) {
-                        return (
-                          <div key={index} className="mt-1">
-                            <p style={{ color: entry.color }}>
-                              {formatPrice(Number(entry.value))}
-                            </p>
-                            <p className="text-gray-500 text-xs">
-                              Pasar: {entry.dataKey}
-                            </p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })}
+                    <p className="text-primary font-medium">
+                      {formatPrice(Number(data.price))}
+                    </p>
                   </div>
                 );
               }
