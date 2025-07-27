@@ -178,93 +178,59 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Blue Header */}
-      <div className="bg-blue-600 text-white">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center">
-                <span className="text-xs font-bold">S</span>
-              </div>
-              <div>
-                <div className="text-xs opacity-90">DASHBOARD</div>
-                <div className="font-semibold">SIMANIS</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm">Perkembangan Harga</span>
-              <ChevronDown className="w-4 h-4" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Breadcrumb */}
-      <div className="bg-gray-100 border-b">
-        <div className="container mx-auto px-4 py-3">
-          <div className="text-sm text-gray-600">
-            Beranda → Eksplorasi Dashboard → Dashboard Pangan
-          </div>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-6">
         {/* Title */}
         <h1 className="text-2xl font-bold text-gray-900 mb-6">
           Dashboard Pangan Kabupaten Ciamis
         </h1>
 
-        {/* Search and Filters */}
-        <div className="flex flex-wrap items-center gap-4 mb-6">
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Input
-                type="text"
-                placeholder="Cari Komoditas"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-64 pl-4 pr-10 h-10 border border-gray-300 rounded"
-              />
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            </div>
-            <Button 
-              onClick={handleSearch}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 h-10"
-            >
-              <Search className="w-4 h-4" />
-            </Button>
+        {/* Search and Filters Row */}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="relative">
+            <Input
+              type="text"
+              placeholder="Cari Komoditas"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-64 pl-10 pr-4 h-10 border border-gray-300 rounded"
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           </div>
+          <Button 
+            onClick={handleSearch}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 h-10"
+          >
+            <Search className="w-4 h-4" />
+          </Button>
 
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Pilih Pasar</span>
-            <Select value={selectedMarket} onValueChange={handleMarketChange}>
-              <SelectTrigger className="w-48 h-10 border border-gray-300">
-                <SelectValue placeholder="Semua Pasar" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                <SelectItem value="all">Semua Pasar</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.nama}>
-                    {category.nama}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <span className="text-sm text-gray-600 ml-4">Pilih Pasar</span>
+          <Select value={selectedMarket} onValueChange={handleMarketChange}>
+            <SelectTrigger className="w-48 h-10 border border-gray-300">
+              <SelectValue placeholder="Semua Pasar" />
+            </SelectTrigger>
+            <SelectContent className="bg-white border border-gray-200 shadow-lg">
+              <SelectItem value="all">Semua Pasar</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.nama}>
+                  {category.nama}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-            <span className="text-sm text-gray-600">Kondisi Harga</span>
-            <Select value={priceCondition} onValueChange={setPriceCondition}>
-              <SelectTrigger className="w-48 h-10 border border-gray-300">
-                <SelectValue placeholder="Semua" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                <SelectItem value="semua">Semua</SelectItem>
-                <SelectItem value="naik">Naik</SelectItem>
-                <SelectItem value="turun">Turun</SelectItem>
-                <SelectItem value="tetap">Tetap</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <span className="text-sm text-gray-600">Kondisi Harga</span>
+          <Select value={priceCondition} onValueChange={setPriceCondition}>
+            <SelectTrigger className="w-48 h-10 border border-gray-300">
+              <SelectValue placeholder="Semua" />
+            </SelectTrigger>
+            <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+              <SelectItem value="semua">Semua</SelectItem>
+              <SelectItem value="naik">Naik</SelectItem>
+              <SelectItem value="turun">Turun</SelectItem>
+              <SelectItem value="tetap">Tetap</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Price Legend */}
@@ -278,13 +244,13 @@ const Index = () => {
             <span className="text-sm text-gray-600">Harga Naik</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-black rounded-full"></div>
+            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
             <span className="text-sm text-gray-600">Harga Tetap</span>
           </div>
         </div>
 
         {/* Information Banner */}
-        <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-6">
+        <div className="bg-blue-50 border-l-4 border-blue-400 rounded p-3 mb-6">
           <div className="flex items-center gap-2 text-blue-700">
             <Info className="w-4 h-4" />
             <span className="text-sm">
@@ -292,24 +258,6 @@ const Index = () => {
             </span>
           </div>
         </div>
-
-        {/* Market Tabs */}
-        <Tabs value={selectedMarket} onValueChange={handleMarketChange} className="mb-6">
-          <TabsList className="bg-gray-100 p-1 rounded">
-            <TabsTrigger value="all" className="text-sm px-4 py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-              Semua Pasar
-            </TabsTrigger>
-            {categories.slice(0, 5).map((category) => (
-              <TabsTrigger 
-                key={category.id} 
-                value={category.nama}
-                className="text-sm px-4 py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-              >
-                {category.nama}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
 
         {/* Main Content */}
         {loading ? (
