@@ -24,22 +24,34 @@ const Index = () => {
 
   // Get real price trend for commodity using price history data
   const getPriceTrend = (commodity: Commodity) => {
-    const commodityData = priceHistory.filter(item => 
+    let commodityData = priceHistory.filter(item => 
       item.komoditi.toLowerCase().includes(commodity.nama.toLowerCase())
     );
     
+    // Filter by selected market if not 'all'
+    if (selectedMarket !== 'all') {
+      commodityData = commodityData.filter(item => 
+        item.pasar.toLowerCase().includes(selectedMarket.toLowerCase())
+      );
+    }
+    
     if (commodityData.length < 2) return 'tetap';
     
-    // Sort by date and get last two entries
+    // Sort by date and get last two entries for comparison
     const sortedData = commodityData
-      .sort((a, b) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime())
-      .slice(-2);
+      .sort((a, b) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime());
     
     if (sortedData.length < 2) return 'tetap';
     
-    const [prev, current] = sortedData;
-    const priceDiff = current.harga - prev.harga;
-    const threshold = prev.harga * 0.01; // 1% threshold
+    // Compare latest price with previous week's average
+    const latest = sortedData[sortedData.length - 1];
+    const previousWeek = sortedData.slice(-8, -1); // Previous 7 days
+    
+    if (previousWeek.length === 0) return 'tetap';
+    
+    const avgPrevious = previousWeek.reduce((sum, item) => sum + item.harga, 0) / previousWeek.length;
+    const priceDiff = latest.harga - avgPrevious;
+    const threshold = avgPrevious * 0.02; // 2% threshold for more accurate trend
     
     if (priceDiff > threshold) return 'naik';
     if (priceDiff < -threshold) return 'turun';
@@ -48,21 +60,33 @@ const Index = () => {
 
   // Get price change data for commodity
   const getPriceChange = (commodity: Commodity) => {
-    const commodityData = priceHistory.filter(item => 
+    let commodityData = priceHistory.filter(item => 
       item.komoditi.toLowerCase().includes(commodity.nama.toLowerCase())
     );
+    
+    // Filter by selected market if not 'all'
+    if (selectedMarket !== 'all') {
+      commodityData = commodityData.filter(item => 
+        item.pasar.toLowerCase().includes(selectedMarket.toLowerCase())
+      );
+    }
     
     if (commodityData.length < 2) return { amount: 0, percentage: 0 };
     
     const sortedData = commodityData
-      .sort((a, b) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime())
-      .slice(-2);
+      .sort((a, b) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime());
     
     if (sortedData.length < 2) return { amount: 0, percentage: 0 };
     
-    const [prev, current] = sortedData;
-    const amount = current.harga - prev.harga;
-    const percentage = ((amount / prev.harga) * 100);
+    // Compare latest with previous week average
+    const latest = sortedData[sortedData.length - 1];
+    const previousWeek = sortedData.slice(-8, -1);
+    
+    if (previousWeek.length === 0) return { amount: 0, percentage: 0 };
+    
+    const avgPrevious = previousWeek.reduce((sum, item) => sum + item.harga, 0) / previousWeek.length;
+    const amount = latest.harga - avgPrevious;
+    const percentage = ((amount / avgPrevious) * 100);
     
     return { amount: Math.abs(amount), percentage: Math.abs(percentage) };
   };
@@ -343,7 +367,10 @@ const Index = () => {
                       
                       {/* Mini chart with tooltip */}
                       <div className="bg-gray-50 rounded mb-2 p-1">
-                        <MiniChart commodityName={commodity.nama} />
+                      <MiniChart 
+                        commodityName={commodity.nama} 
+                        marketName={selectedMarket} 
+                      />
                       </div>
                     </div>
                     <Button
